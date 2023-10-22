@@ -13,7 +13,8 @@ output: $(OBJECTS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf *.o output
+	Remove-Item *.o
+	Remove-Item *.exe
 
 rebuild: clean all
 
