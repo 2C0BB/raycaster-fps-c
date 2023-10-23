@@ -1,5 +1,6 @@
 #include "player.h"
 #include "angle_maths.h"
+#include "include/raylib.h"
 #include "map.h"
 
 #include "consts.h"
@@ -162,15 +163,19 @@ void cast_rays3D() {
 
         Color wall_color;
 
+        int texture_col_offset;
+
         if (dist_vert < dist_horiz) { // vertical collision first
             ray_x = vx;
             ray_y = vy;
             final_distance = dist_vert;
+            texture_col_offset = ((int)(ray_y/2.0)%32);
             wall_color = RED;
         } else { // horizontal collision first
             ray_x = hx;
             ray_y = hy;
             final_distance = dist_horiz;
+            texture_col_offset = ((int)(ray_x/2.0)%32);
             wall_color = ORANGE;
         }
         
@@ -183,14 +188,31 @@ void cast_rays3D() {
 
         final_distance *= cos(ca); // using cosine to remove fisheye effect. This uses flat distance instead of direct.
 
-        float line_height = mapS * SCREEN_HEIGHT / final_distance;
+        int line_height = mapS * SCREEN_HEIGHT / final_distance;
+        
+        float text_y_step = ((float) mapS / 2.0) / (float)line_height;
+        float text_y_offset = 0;
+
         if (line_height > SCREEN_HEIGHT) {
+            text_y_offset = (line_height - SCREEN_HEIGHT)/2.0;
             line_height = SCREEN_HEIGHT;
         }
         float line_offset = (SCREEN_HEIGHT/2.0) - line_height/2.0;
         int line_width = SCREEN_WIDTH / fov; 
 
-        DrawRectangle(r*line_width, line_offset, line_width, line_height, wall_color);
+
+        DrawRectangle(r * line_width, 0, line_width, line_offset, SKYBLUE);
+
+        float text_y = text_y_offset * text_y_step;
+        for (int y = 0; y < line_height; y++) {
+            Color pixel_color = generate_texture_at_point(texture_col_offset, (int)(text_y)*2);
+            DrawRectangle(r * line_width, line_offset + y, line_width, 1, pixel_color); 
+            text_y += text_y_step;
+        }
+
+        DrawRectangle(r * line_width, line_height + line_offset, line_width, line_offset, GRAY);
+
+        // DrawRectangle(r*line_width, line_offset, line_width, line_height, wall_color);
 
         ray_angle += (PI / 180);
     }
