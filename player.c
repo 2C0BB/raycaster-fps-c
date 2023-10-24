@@ -31,20 +31,36 @@ void handle_player_input(float delta_time) {
     if (IsKeyDown(KEY_D)) {
         player_angle += 0.1 * player_turning_vel * delta_time;
     }
-
     player_angle = clamp_angle(player_angle);
 
-    player_dx = cos(player_angle) * player_vel;
-    player_dy = sin(player_angle) * player_vel;
 
-    if (IsKeyDown(KEY_W)) {
-        player_x += player_dx * delta_time;
-        player_y += player_dy * delta_time;
-    }
+    bool w_down = IsKeyDown(KEY_W);
+    bool s_down = IsKeyDown(KEY_S);
+    if (w_down || s_down) {
+       
+        player_dx = cos(player_angle) * player_vel * delta_time;
+        player_dy = sin(player_angle) * player_vel * delta_time;
 
-    if (IsKeyDown(KEY_S)) {
-        player_x -= player_dx * delta_time;
-        player_y -= player_dy * delta_time;
+        float new_x = player_x;
+        float new_y = player_y;
+
+        if (w_down) {
+            new_x += player_dx;
+            new_y += player_dy;
+        }
+
+        if (s_down) {
+            new_x -= player_dx;
+            new_y -= player_dy;
+        }
+
+
+        if (!is_wall(new_x/64, player_y/64)) {
+            player_x = new_x;
+        }
+        if (!is_wall(player_x/64, new_y/64)) {
+            player_y = new_y;
+        }
     }
 }
 
@@ -58,7 +74,7 @@ void cast_rays3D() {
 
     int fov = 80;
 
-    float ray_angle = player_angle - ((fov/2.0) * (PI/180));
+    float ray_angle = player_angle - degs_to_rads(fov/2.0);
 
     for (int r = 0; r < fov; r++) {
 
@@ -161,22 +177,22 @@ void cast_rays3D() {
             }
         }
 
-        Color wall_color;
 
         int texture_col_offset;
+        float color_mult;
 
         if (dist_vert < dist_horiz) { // vertical collision first
             ray_x = vx;
             ray_y = vy;
             final_distance = dist_vert;
-            texture_col_offset = ((int)(ray_y/2.0)%32);
-            wall_color = RED;
+            texture_col_offset = ((int)ray_y%64);
+            color_mult = 0.7;
         } else { // horizontal collision first
             ray_x = hx;
             ray_y = hy;
             final_distance = dist_horiz;
-            texture_col_offset = ((int)(ray_x/2.0)%32);
-            wall_color = ORANGE;
+            texture_col_offset = ((int)ray_x%64);
+            color_mult = 1;
         }
         
         // 2D RAYS
@@ -190,7 +206,7 @@ void cast_rays3D() {
 
         int line_height = mapS * SCREEN_HEIGHT / final_distance;
         
-        float text_y_step = ((float) mapS / 2.0) / (float)line_height;
+        float text_y_step = ((float) mapS) / (float)line_height;
         float text_y_offset = 0;
 
         if (line_height > SCREEN_HEIGHT) {
@@ -205,15 +221,19 @@ void cast_rays3D() {
 
         float text_y = text_y_offset * text_y_step;
         for (int y = 0; y < line_height; y++) {
-            Color pixel_color = generate_texture_at_point(texture_col_offset, (int)(text_y)*2);
+            Color pixel_color = generate_texture_at_point(texture_col_offset, (int)(text_y), color_mult);
             DrawRectangle(r * line_width, line_offset + y, line_width, 1, pixel_color); 
             text_y += text_y_step;
         }
 
-        DrawRectangle(r * line_width, line_height + line_offset, line_width, line_offset, GRAY);
+        DrawRectangle(r * line_width, line_height + line_offset, line_width, line_offset, DARKGRAY);
+
+        // REMOVE DEBUG
+        DrawText(TextFormat("Player Rotation: %f", player_angle), 10, 10, 20, BLACK);
+        // -----------------------------------------
 
         // DrawRectangle(r*line_width, line_offset, line_width, line_height, wall_color);
 
-        ray_angle += (PI / 180);
+        ray_angle += degs_to_rads(1);
     }
 }

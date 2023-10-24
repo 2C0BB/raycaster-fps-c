@@ -1,4 +1,7 @@
+# thanks chatgpt
+
 from PIL import Image
+import sys
 
 def print_pixel_rgb(image_path):
     # Open the image
@@ -13,15 +16,13 @@ def print_pixel_rgb(image_path):
 
     # Iterate over each pixel and print its RGB values
     with open("outp.txt" , "w") as f:
-        f.write("[")
         for y in range(height):
             for x in range(width):
                 r, g, b = image.getpixel((x, y))
-                f.write(f"[{r}, {g}, {b}],")
-        f.write("]")
+                f.write(f"{r} {g} {b}\n")
     # Close the image
     image.close()
 
 # Example usage
-image_path = "brickwall.png"
+image_path = sys.argv[1]
 print_pixel_rgb(image_path)

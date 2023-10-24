@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <math.h>
 
+#include "map.h"
 #include "player.h"
 #include "consts.h"
 
@@ -28,6 +29,8 @@ void display () {
 int main(void) {
     // Initialization
     //--------------------------------------------------------------------------------------
+
+    load_test_texture("debug2.txt"); 
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Raycaster");
 
